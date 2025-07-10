@@ -4,7 +4,154 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Морозов Вячеслав - Резюме</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Основные стили */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+
+        /* Шапка */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 2em;
+        }
+
+        header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        /* Разделы */
+        section {
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        h2 {
+            color: #3498db;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+            margin: 30px 0 20px;
+            font-size: 1.5em;
+        }
+
+        /* Блоки опыта */
+        .job {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .job:hover {
+            transform: translateY(-3px);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: baseline;
+        }
+
+        .job-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #2c3e50;
+            margin-right: 15px;
+        }
+
+        .job-date {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .company {
+            font-style: italic;
+            color: #3498db;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Список обязанностей */
+        ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 15px;
+        }
+
+        li:before {
+            content: "•";
+            color: #3498db;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .job-header {
+                flex-direction: column;
+            }
+            
+            .job-date {
+                margin-top: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.7em;
+            }
+            
+            header p {
+                font-size: 1em;
+            }
+            
+            .job {
+                padding: 15px;
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        section:nth-child(2) { animation-delay: 0.1s; }
+        section:nth-child(3) { animation-delay: 0.2s; }
+        section:nth-child(4) { animation-delay: 0.3s; }
+    </style>
 </head>
 <body>
     <header>
@@ -12,10 +159,75 @@
         <p>Специалист IT отдела / Инженер-эколог</p>
     </header>
 
-    <section id="education"></section>
-    <section id="it-experience"></section>
-    <section id="ecology-experience"></section>
+    <section id="education">
+        <h2>Образование</h2>
+        <div class="job">
+            <div class="job-header">
+                <span class="job-title">Биоэкология (биоэколог)</span>
+                <span class="job-date">2013</span>
+            </div>
+            <div class="company">Московский областной университет</div>
+        </div>
+        
+        <div class="job">
+            <div class="job-header">
+                <span class="job-title">Специалист по тестированию</span>
+                <span class="job-date">2022</span>
+            </div>
+            <div class="company">Томский государственный университет</div>
+        </div>
+    </section>
 
-    <script src="script.js"></script>
+    <section id="it-experience">
+        <h2>Опыт работы в IT</h2>
+        
+        <div class="job">
+            <div class="job-header">
+                <span class="job-title">Специалист IT отдела</span>
+                <span class="job-date">Ноябрь 2023 — настоящее время</span>
+            </div>
+            <div class="company">Coca-Cola HBC Russia</div>
+            <ul>
+                <li>Сопровождение 2х площадок (офисное пространство 80%+ производственная территория 20%)</li>
+                <li>Подготовка и выдача техники</li>
+                <li>Контроль распределения техники</li>
+                <li>Ремонт и обслуживание техники (ноутбуки, камеры, принтеры)</li>
+                <li>Подготовка оборудования для мероприятий-конференций и их проведение</li>
+                <li>Работа с Intune, Active Directory, SLA</li>
+            </ul>
+        </div>
+        
+        <div class="job">
+            <div class="job-header">
+                <span class="job-title">Разработчик C++</span>
+                <span class="job-date">Июль 2023 — Октябрь 2023</span>
+            </div>
+            <div class="company">НПО Молния</div>
+            <ul>
+                <li>Работа над проектом С++</li>
+                <li>Реверс-инжиниринг</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="ecology-experience">
+        <h2>Опыт работы в экологии</h2>
+        
+        <div class="job">
+            <div class="job-header">
+                <span class="job-title">Инженер-эколог</span>
+                <span class="job-date">Июнь 2012 — Ноябрь 2021</span>
+            </div>
+            <div class="company">Компании по замерам физических факторов (лаборатории)</div>
+            <ul>
+                <li>Выезд на объекты</li>
+                <li>Проведение замеров физических факторов</li>
+                <li>Обслуживание офисной оргтехники</li>
+                <li>Контроль за состоянием средств измерений</li>
+                <li>Оформление отчётов по измерениям (протоколы)</li>
+                <li>Общение с заказчиками на объекте</li>
+            </ul>
+        </div>
+    </section>
 </body>
 </html>
