@@ -50,6 +50,47 @@
         a:hover {
             text-decoration: underline;
         }
+	    
+	     /* Блоки опыта */
+        .job {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .job:hover {
+            transform: translateY(-3px);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: baseline;
+        }
+
+        .job-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #2c3e50;
+            margin-right: 15px;
+        }
+
+        .job-date {
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        .company {
+            font-style: italic;
+            color: #3498db;
+            margin-bottom: 10px;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -57,16 +98,16 @@
         <header>
             <img src="21shool.jpg" alt="Мое фото">
             <h1>Морозов Вячеслав</h1>
-            <p>Эколог, ИТ-специалист, Инженер-любитель</p>
+            <!--<p>Эколог, ИТ-специалист, Инженер-любитель</p>-->
         </header>
 
         <section class="about">
             <h2>О себе</h2>
-            <p>	Привет! 
-		Я занимаюсь изучением технологий. 
-		Инженерия, программирование, экология, строительство. 
-		Люблю интересные задачи, чистый код и чистые проекты.
-	    </p>
+            <p>Привет! Я как Шрёдингер в профессии — одновременно в двух состояниях:</p>
+	    <div class="job-header">
+                <span class="job-title">ИТ-специалист</span>
+                <span class="job-date">Эколог</span>
+            </div>
         </section>
 	    
 	<section class="experience">
