@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дневник давления</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 500px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2196F3; text-align: center; }
+        .date-display { 
+            background: #e3f2fd; 
+            padding: 10px; 
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #555; }
+        input, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .button { 
+            background: #2196F3; 
+            color: white; 
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .button:hover { background: #1976D2; }
+        .history-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+        .tabs { 
+            display: flex; 
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .tab { 
+            padding: 10px 20px; 
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active { 
+            border-bottom-color: #2196F3;
+            color: #2196F3;
+            font-weight: bold;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .export-btn { 
+            background: #4CAF50; 
+            margin-top: 20px;
+        }
+        .danger { 
+            background: #ff4444; 
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .normal { 
+            background: #4CAF50; 
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Дневник давления</h1>
+        
+        <div class="date-display" id="currentDate"></div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('input')">Ввод</div>
+            <div class="tab" onclick="showTab('history')">История</div>
+            <div class="tab" onclick="showTab('export')">Экспорт</div>
+        </div>
+        
+        <!-- Вкладка ввода -->
+        <div id="tab-input" class="tab-content active">
+            <div class="input-group">
+                <label>Верхнее давление (систола):</label>
+                <input type="number" id="systolic" placeholder="120" min="50" max="250">
+            </div>
+            
+            <div class="input-group">
+                <label>Нижнее давление (диастола):</label>
+                <input type="number" id="diastolic" placeholder="80" min="30" max="150">
+            </div>
+            
+            <div class="input-group">
+                <label>Пульс (уд/мин):</label>
+                <input type="number" id="pulse" placeholder="75" min="30" max="200">
+            </div>
+            
+            <div class="input-group">
+                <label>Заметки (необязательно):</label>
+                <textarea id="notes" rows="3" placeholder="Самочувствие, лекарства..."></textarea>
+            </div>
+            
+            <button class="button" onclick="saveMeasurement()">💾 Сохранить измерение</button>
+            
+            <div id="status" style="margin-top: 15px; text-align: center;"></div>
+        </div>
+        
+        <!-- Вкладка истории -->
+        <div id="tab-history" class="tab-content">
+            <div id="history-list"></div>
+            <button class="button" onclick="clearAllData()" style="background: #ff4444;">🗑 Очистить всю историю</button>
+        </div>
+        
+        <!-- Вкладка экспорта -->
+        <div id="tab-export" class="tab-content">
+            <p>Выгрузите данные для передачи врачу:</p>
+            <button class="button export-btn" onclick="exportToCSV()">📥 Скачать CSV файл</button>
+            <button class="button export-btn" onclick="exportToText()">📋 Скопировать как текст</button>
+            <button class="button export-btn" onclick="printData()">🖨 Распечатать</button>
+            
+            <div id="export-result" style="margin-top: 20px; white-space: pre-wrap; background: #f0f0f0; padding: 10px; border-radius: 5px; display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Показываем текущую дату
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDate').textContent = 
+                `📅 ${now.toLocaleDateString('ru-RU', options)}`;
+        }
+        
+        // Переключение вкладок
+        function showTab(tabName) {
+            // Скрыть все вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показать выбранную
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            
+            // Если открыли историю - обновить
+            if (tabName === 'history') {
+                loadHistory();
+            }
+        }
+        
+        // Сохранение измерения
+        function saveMeasurement() {
+            const systolic = document.getElementById('systolic').value;
+            const diastolic = document.getElementById('diastolic').value;
+            const pulse = document.getElementById('pulse').value;
+            const notes = document.getElementById('notes').value;
+            
+            if (!systolic || !diastolic || !pulse) {
+                showStatus('Заполните все поля!', 'error');
+                return;
+            }
+            
+            // Получаем существующие данные
+            let measurements = JSON.parse(localStorage.getItem('healthData') || '[]');
+            
+            // Добавляем новое измерение
+            const newMeasurement = {
+                id: Date.now(),
+                date: new Date().toLocaleString('ru-RU'),
+                systolic: parseInt(systolic),
+                diastolic: parseInt(diastolic),
+                pulse: parseInt(pulse),
+                notes: notes
+            };
+            
+            measurements.unshift(newMeasurement); // Добавляем в начало
+            
+            // Сохраняем
+            localStorage.setItem('healthData', JSON.stringify(measurements));
+            
+            // Очищаем поля
+            document.getElementById('systolic').value = '';
+            document.getElementById('diastolic').value = '';
+            document.getElementById('pulse').value = '';
+            document.getElementById('notes').value = '';
+            
+            showStatus('✅ Измерение сохранено!', 'success');
+            
+            // Автопереход на историю через 1 секунду
+            setTimeout(() => showTab('history'), 1000);
+        }
+        
+        // Загрузка истории
+        function loadHistory() {
+            const measurements = JSON.parse(localStorage.getItem('healthData') || '[]');
+            const historyList = document.getElementById('history-list');
+            
+            if (measurements.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: #777;">Нет сохраненных измерений</p>';
+                return;
+            }
+            
+            let html = `<p>Всего измерений: ${measurements.length}</p>`;
+            
+            measurements.forEach(measurement => {
+                // Определяем статус давления
+                let pressureStatus = '';
+                let statusClass = '';
+                
+                if (measurement.systolic > 140 || measurement.diastolic > 90) {
+                    pressureStatus = 'Повышенное';
+                    statusClass = 'danger';
+                } else if (measurement.systolic < 100 || measurement.diastolic < 60) {
+                    pressureStatus = 'Пониженное';
+                    statusClass = 'danger';
+                } else {
+                    pressureStatus = 'Норма';
+                    statusClass = 'normal';
+                }
+                
+                // Статус пульса
+                let pulseStatus = '';
+                if (measurement.pulse > 100) {
+                    pulseStatus = '<span class="danger">Высокий</span>';
+                } else if (measurement.pulse < 60) {
+                    pulseStatus = '<span class="danger">Низкий</span>';
+                } else {
+                    pulseStatus = '<span class="normal">Норма</span>';
+                }
+                
+                html += `
+                    <div class="history-item">
+                        <div style="font-weight: bold;">${measurement.date}</div>
+                        <div>📊 Давление: <b>${measurement.systolic}/${measurement.diastolic}</b> 
+                            <span class="${statusClass}">${pressureStatus}</span>
+                        </div>
+                        <div>❤️ Пульс: <b>${measurement.pulse}</b> уд/мин ${pulseStatus}</div>
+                        ${measurement.notes ? `<div>📝 Заметки: ${measurement.notes}</div>` : ''}
+                        <button onclick="deleteMeasurement(${measurement.id})" style="margin-top: 5px; background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                            Удалить
+                        </button>
+                    </div>
+                `;
+            });
+            
+            historyList.innerHTML = html;
+        }
+        
+        // Удаление измерения
+        function deleteMeasurement(id) {
+            let measurements = JSON.parse(localStorage.getItem('healthData') || '[]');
+            measurements = measurements.filter(m => m.id !== id);
+            localStorage.setItem('healthData', JSON.stringify(measurements));
+            loadHistory();
+        }
+        
+        // Очистка всех данных
+        function clearAllData() {
+            if (confirm('Удалить всю историю измерений? Это действие нельзя отменить.')) {
+                localStorage.removeItem('healthData');
+                loadHistory();
+                showStatus('История очищена', 'success');
+            }
+        }
+        
+        // Экспорт в CSV
+        function exportToCSV() {
+            const measurements = JSON.parse(localStorage.getItem('healthData') || '[]');
+            
+            let csv = 'Дата;Верхнее давление;Нижнее давление;Пульс;Заметки\n';
+            
+            measurements.forEach(m => {
+                csv += `"${m.date}";${m.systolic};${m.diastolic};${m.pulse};"${m.notes || ''}"\n`;
+            });
+            
+            // Создаем и скачиваем файл
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `давление_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            
+            showExportResult(`CSV файл создан. Записей: ${measurements.length}`);
+        }
+        
+        // Экспорт в текст
+        function exportToText() {
+            const measurements = JSON.parse(localStorage.getItem('healthData') || '[]');
+            
+            let text = 'ДНЕВНИК ДАВЛЕНИЯ\n';
+            text += `Сформировано: ${new Date().toLocaleString('ru-RU')}\n`;
+            text += `Всего измерений: ${measurements.length}\n\n`;
+            
+            measurements.forEach(m => {
+                text += `📅 ${m.date}\n`;
+                text += `  Давление: ${m.systolic}/${m.diastolic}\n`;
+                text += `  Пульс: ${m.pulse} уд/мин\n`;
+                if (m.notes) text += `  Заметки: ${m.notes}\n`;
+                text += '─'.repeat(30) + '\n';
+            });
+            
+            // Копируем в буфер обмена
+            navigator.clipboard.writeText(text).then(() => {
+                showExportResult('✅ Данные скопированы в буфер обмена!');
+            });
+        }
+        
+        // Печать
+        function printData() {
+            const measurements = JSON.parse(localStorage.getItem('healthData') || '[]');
+            
+            let printContent = `
+                <html>
+                <head><title>Дневник давления</title></head>
+                <body>
+                <h1>Дневник артериального давления</h1>
+                <p>Пациент: [Введите имя]</p>
+                <p>Период: ${measurements.length > 0 ? 
+                    `${measurements[measurements.length-1].date} - ${measurements[0].date}` : 
+                    'Нет данных'}</p>
+                <table border="1" cellpadding="5" style="width:100%; border-collapse: collapse;">
+                <tr><th>Дата</th><th>Давление</th><th>Пульс</th><th>Заметки</th></tr>
+            `;
+            
+            measurements.forEach(m => {
+                printContent += `
+                    <tr>
+                        <td>${m.date}</td>
+                        <td>${m.systolic}/${m.diastolic}</td>
+                        <td>${m.pulse}</td>
+                        <td>${m.notes || ''}</td>
+                    </tr>
+                `;
+            });
+            
+            printContent += '</table></body></html>';
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        // Показать статус
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.style.color = type === 'error' ? '#ff4444' : '#4CAF50';
+            setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        }
+        
+        // Показать результат экспорта
+        function showExportResult(message) {
+            const resultEl = document.getElementById('export-result');
+            resultEl.textContent = message;
+            resultEl.style.display = 'block';
+            setTimeout(() => { resultEl.style.display = 'none'; }, 5000);
+        }
+        
+        // Инициализация
+        updateDateTime();
+        setInterval(updateDateTime, 60000); // Обновлять дату каждую минуту
+        
+        // Загрузить историю при загрузке страницы
+        window.onload = function() {
+            loadHistory();
+        };
+    </script>
+</body>
+</html>
