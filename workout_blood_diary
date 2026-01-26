@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фитнес-трекер + Давление</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+        }
+        h1 { font-size: 28px; margin-bottom: 10px; font-weight: 600; }
+        .subtitle { opacity: 0.9; font-size: 16px; }
+        
+        /* Навигация */
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .nav-tab {
+            flex: 1;
+            text-align: center;
+            padding: 18px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 500;
+            color: #6c757d;
+        }
+        .nav-tab:hover { background: #e9ecef; }
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+        .tab-content { display: none; padding: 25px; }
+        .tab-content.active { display: block; }
+        
+        /* Карточки быстрого доступа */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .quick-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .quick-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+        }
+        .quick-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .quick-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .quick-desc {
+            font-size: 14px;
+            color: #6c757d;
+            line-height: 1.5;
+        }
+        
+        /* Формы */
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px dashed #dee2e6;
+        }
+        .form-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .form-title i { margin-right: 12px; }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: white;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+        
+        /* Кнопки */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            gap: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-full { width: 100%; }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        /* Карточки записей */
+        .records-list {
+            margin-top: 25px;
+        }
+        .record-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .record-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .record-date {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+        .record-type {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .type-training { background: #e3f2fd; color: #1976d2; }
+        .type-pressure { background: #f3e5f5; color: #7b1fa2; }
+        .type-combined { background: #e8f5e9; color: #2e7d32; }
+        .record-content {
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        .record-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            margin-top: 15px;
+        }
+        .record-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .action-btn {
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            background: #f8f9fa;
+        }
+        
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .container { border-radius: 0; }
+            .nav-tabs { flex-direction: column; }
+            .quick-actions { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; }
+            .record-header { flex-direction: column; gap: 10px; }
+            .record-footer { flex-direction: column; gap: 15px; }
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Пульсирующая кнопка */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container fade-in">
+        <header>
+            <h1>🏋️‍♂️ Фитнес-трекер + ❤️ Давление</h1>
+            <p class="subtitle">Что делаете — то и фиксируйте. Просто. Рационально.</p>
+        </header>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('quick')" data-tab="quick">
+                🚀 Быстрый старт
+            </div>
+            <div class="nav-tab" onclick="showTab('trainings')" data-tab="trainings">
+                🏋️ Тренировки
+            </div>
+            <div class="nav-tab" onclick="showTab('pressure')" data-tab="pressure">
+                ❤️ Давление
+            </div>
+            <div class="nav-tab" onclick="showTab('history')" data-tab="history">
+                📜 Все записи
+            </div>
+            <div class="nav-tab" onclick="showTab('stats')" data-tab="stats">
+                📊 Статистика
+            </div>
+        </div>
+        
+        <!-- Вкладка быстрого старта -->
+        <div id="tab-quick" class="tab-content active">
+            <h2 style="margin-bottom: 25px; color: #333;">Выберите что хотите зафиксировать:</h2>
+            
+            <div class="quick-actions">
+                <div class="quick-card" onclick="startQuickTraining()">
+                    <span class="quick-icon">🏋️</span>
+                    <div class="quick-title">Только тренировка</div>
+                    <div class="quick-desc">Зафиксируйте упражнения без замеров давления</div>
+                </div>
+                
+                <div class="quick-card" onclick="startQuickPressure()">
+                    <span class="quick-icon">❤️</span>
+                    <div class="quick-title">Только давление</div>
+                    <div class="quick-desc">Измерение давления без привязки к тренировке</div>
+                </div>
+                
+                <div class="quick-card" onclick="startQuickCombined()">
+                    <span class="quick-icon">🏋️❤️</span>
+                    <div class="quick-title">Тренировка + давление</div>
+                    <div class="quick-desc">Свяжите тренировку с замером давления</div>
+                </div>
+            </div>
+            
+            <div class="form-section" id="quick-form" style="display: none;">
+                <div id="quick-form-content"></div>
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-full" onclick="saveQuickRecord()">
+                        💾 Сохранить
+                    </button>
+                    <button class="btn btn-secondary" onclick="cancelQuickForm()">
+                        ❌ Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Вкладка тренировок -->
+        <div id="tab-trainings" class="tab-content">
+            <h2 style="margin-bottom: 25px; color: #333;">🏋️ Новая тренировка</h2>
+            
+            <div class="form-section">
+                <div class="form-title">📝 Информация о тренировке</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Тип тренировки</label>
+                        <select id="training-type">
+                            <option value="">Выберите тип...</option>
+                            <option value="cardio">Кардио (бег, велосипед)</option>
+                            <option value="strength">Силовая (тренажеры)</option>
+                            <option value="crossfit">Кроссфит</option>
+                            <option value="yoga">Йога / Растяжка</option>
+                            <option value="sport">Спортивная игра</option>
+                            <option value="walking">Ходьба</option>
+                            <option value="home">Домашняя тренировка</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Длительность (минут)</label>
+                        <input type="number" id="training-duration" min="1" max="300" placeholder="60">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Упражнения / Описание</label>
+                    <textarea id="training-exercises" placeholder="Что делали? Например:
+- Жим лежа: 3х10 по 60кг
+- Приседания: 3х12 по 50кг
+- Планка: 3х1 минута
+- Или просто описание тренировки"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Интенсивность</label>
+                        <select id="training-intensity">
+                            <option value="">Не указано</option>
+                            <option value="low">Низкая</option>
+                            <option value="medium">Средняя</option>
+                            <option value="high">Высокая</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Самочувствие</label>
+                        <select id="training-feeling">
+                            <option value="">Не указано</option>
+                            <option value="excellent">Отличное 😊</option>
+                            <option value="good">Хорошее 🙂</option>
+                            <option value="normal">Нормальное 😐</option>
+                            <option value="tired">Усталость 😓</option>
+                            <option value="bad">Плохое 😞</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="saveTraining()">
+                        💾 Сохранить тренировку
+                    </button>
+                    <button class="btn btn-success" onclick="saveTrainingWithPressure()">
+                        🏋️❤️ Добавить измерение давления
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Вкладка давления -->
+        <div id="tab-pressure" class="tab-content">
+            <h2 style="margin-bottom: 25px; color: #333;">❤️ Новое измерение давления</h2>
+            
+            <div class="form-section">
+                <div class="form-title">📊 Параметры измерения</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Давление (верхнее/нижнее)</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="pressure-systolic" placeholder="120" min="50" max="250" style="flex: 1;">
+                            <span style="font-size: 18px;">/</span>
+                            <input type="number" id="pressure-diastolic" placeholder="80" min="30" max="150" style="flex: 1;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Пульс (уд/мин)</label>
+                        <input type="number" id="pressure-pulse" placeholder="75" min="30" max="200">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Когда измеряли?</label>
+                    <select id="pressure-when">
+                        <option value="general">Просто контроль (без тренировки)</option>
+                        <option value="before-training">Перед тренировкой</option>
+                        <option value="after-training">После тренировки</option>
+                        <option value="morning">Утром</option>
+                        <option value="evening">Вечером</option>
+                        <option value="night">Ночью</option>
+                        <option value="symptoms">При симптомах</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="training-link-section" style="display: none;">
+                    <label>Связать с тренировкой</label>
+                    <select id="pressure-training-link">
+                        <option value="">Выберите тренировку...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Заметки (симптомы, самочувствие)</label>
+                    <textarea id="pressure-notes" placeholder="Головная боль, головокружение, или просто заметки..."></textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="savePressure()">
+                        💾 Сохранить измерение
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Вкладка истории -->
+        <div id="tab-history" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h2 style="color: #333;">📜 Все записи</h2>
+                <div>
+                    <button class="btn btn-secondary" onclick="filterRecords('all')">Все</button>
+                    <button class="btn btn-secondary" onclick="filterRecords('training')">Тренировки</button>
+                    <button class="btn btn-secondary" onclick="filterRecords('pressure')">Давление</button>
+                </div>
+            </div>
+            
+            <div id="history-records" class="records-list">
+                <!-- Записи будут здесь -->
+            </div>
+        </div>
+        
+        <!-- Вкладка статистики -->
+        <div id="tab-stats" class="tab-content">
+            <h2 style="margin-bottom: 25px; color: #333;">📊 Статистика</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-total">0</div>
+                    <div class="stat-label">Всего записей</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-trainings">0</div>
+                    <div class="stat-label">Тренировок</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-pressure">0</div>
+                    <div class="stat-label">Измерений давления</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-combined">0</div>
+                    <div class="stat-label">Связанных записей</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px;">
+                <h3 style="margin-bottom: 20px;">📈 Экспорт данных</h3>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="exportJSON()">
+                        💾 Экспорт JSON
+                    </button>
+                    <button class="btn btn-success" onclick="exportCSV()">
+                        📊 Экспорт CSV
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        🗑 Очистить все данные
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let records = JSON.parse(localStorage.getItem('fitnessPressureRecords') || '[]');
+        let currentQuickMode = null;
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHistory();
+            updateStats();
+            
+            // Обработка выбора "когда измеряли"
+            document.getElementById('pressure-when').addEventListener('change', function() {
+                const when = this.value;
+                const linkSection = document.getElementById('training-link-section');
+                
+                if (when === 'before-training' || when === 'after-training') {
+                    linkSection.style.display = 'block';
+                    updateTrainingLinks();
+                } else {
+                    linkSection.style.display = 'none';
+                }
+            });
+        });
+        
+        // Переключение вкладок
+        function showTab(tabName) {
+            // Скрыть все вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показать выбранную
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelector(`.nav-tab[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Обновить данные если нужно
+            if (tabName === 'history') loadHistory();
+            if (tabName === 'stats') updateStats();
+            
+            // Скрыть быструю форму
+            cancelQuickForm();
+        }
+        
+        // ============ БЫСТРЫЙ СТАРТ ============
+        function startQuickTraining() {
+            currentQuickMode = 'training';
+            showTab('trainings');
+        }
+        
+        function startQuickPressure() {
+            currentQuickMode = 'pressure';
+            showTab('pressure');
+        }
+        
+        function startQuickCombined() {
+            const form = document.getElementById('quick-form');
+            const content = document.getElementById('quick-form-content');
+            
+            content.innerHTML = `
+                <div class="form-title">🏋️❤️ Быстрая связка</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Тип тренировки</label>
+                        <input type="text" id="quick-training-type" placeholder="Кардио, силовая...">
+                    </div>
+                    <div class="form-group">
+                        <label>Длительность (мин)</label>
+                        <input type="number" id="quick-duration" placeholder="60">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Когда измеряли давление?</label>
+                    <select id="quick-when">
+                        <option value="before-training">Перед тренировкой</option>
+                        <option value="after-training">После тренировки</option>
+                        <option value="both">До и после</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Давление</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="quick-systolic" placeholder="120" style="flex: 1;">
+                            <span>/</span>
+                            <input type="number" id="quick-diastolic" placeholder="80" style="flex: 1;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Пульс</label>
+                        <input type="number" id="quick-pulse" placeholder="75">
+                    </div>
+                </div>
+                
+                <textarea id="quick-notes" placeholder="Заметки..." style="margin-top: 15px;"></textarea>
+            `;
+            
+            form.style.display = 'block';
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function saveQuickRecord() {
+            if (currentQuickMode === 'combined') {
+                // Сохраняем связку
+                const record = {
+                    id: Date.now(),
+                    type: 'combined',
+                    timestamp: new Date().toISOString(),
+                    date: new Date().toLocaleString('ru-RU'),
+                    
+                    training: {
+                        type: document.getElementById('quick-training-type').value || 'Тренировка',
+                        duration: parseInt(document.getElementById('quick-duration').value) || null,
+                        when: document.getElementById('quick-when').value
+                    },
+                    
+                    pressure: {
+                        systolic: parseInt(document.getElementById('quick-systolic').value) || 0,
+                        diastolic: parseInt(document.getElementById('quick-diastolic').value) || 0,
+                        pulse: parseInt(document.getElementById('quick-pulse').value) || 0
+                    },
+                    
+                    notes: document.getElementById('quick-notes').value || ''
+                };
+                
+                records.unshift(record);
+                localStorage.setItem('fitnessPressureRecords', JSON.stringify(records));
+                
+                alert('✅ Связка сохранена!');
+                cancelQuickForm();
+                showTab('history');
+            }
+        }
+        
+        function cancelQuickForm() {
+            document.getElementById('quick-form').style.display = 'none';
+            currentQuickMode = null;
+        }
+        
+        // ============ ТРЕНИРОВКИ ============
+        function saveTraining() {
+            const record = {
+                id: Date.now(),
+                type: 'training',
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleString('ru-RU'),
+                
+                trainingType: document.getElementById('training-type').value || '',
+                duration: parseInt(document.getElementById('training-duration').value) || null,
+                exercises: document.getElementById('training-exercises').value || '',
+                intensity: document.getElementById('training-intensity').value || '',
+                feeling: document.getElementById('training-feeling').value || ''
+            };
+            
+            records.unshift(record);
+            localStorage.setItem('fitnessPressureRecords', JSON.stringify(records));
+            
+            alert('✅ Тренировка сохранена!');
+            clearTrainingForm();
+            showTab('history');
+        }
+        
+        function saveTrainingWithPressure() {
+            // Сначала сохраняем тренировку
+            const trainingId = Date.now();
+            const trainingRecord = {
+                id: trainingId,
+                type: 'training',
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleString('ru-RU'),
+                
+                trainingType: document.getElementById('training-type').value || '',
+                duration: parseInt(document.getElementById('training-duration').value) || null,
+                exercises: document.getElementById('training-exercises').value || '',
+                intensity: document.getElementById('training-intensity').value || '',
+                feeling: document.getElementById('training-feeling').value || ''
+            };
+            
+            records.unshift(trainingRecord);
+            
+            // Затем переходим на вкладку давления
+            showTab('pressure');
+            
+            // Устанавливаем связь с тренировкой
+            document.getElementById('pressure-when').value = 'after-training';
+            document.getElementById('training-link-section').style.display = 'block';
+            updateTrainingLinks();
+            
+            // Найти только что созданную тренировку
+            setTimeout(() => {
+                const select = document.getElementById('pressure-training-link');
+                select.innerHTML = '<option value="">Выберите тренировку...</option>';
+                const option = document.createElement('option');
+                option.value = trainingId;
+                option.textContent = `Тренировка от ${new Date().toLocaleTimeString('ru-RU')}`;
+                select.appendChild(option);
+                select.value = trainingId;
+            }, 100);
+            
+            alert('📝 Теперь добавьте измерение давления');
+        }
+        
+        function clearTrainingForm() {
+            document.getElementById('training-type').value = '';
+            document.getElementById('training-duration').value = '';
+            document.getElementById('training-exercises').value = '';
+            document.getElementById('training-intensity').value = '';
+            document.getElementById('training-feeling').value = '';
+        }
+        
+        // ============ ДАВЛЕНИЕ ============
+        function savePressure() {
+            const record = {
+                id: Date.now(),
+                type: 'pressure',
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleString('ru-RU'),
+                
+                systolic: parseInt(document.getElementById('pressure-systolic').value) || 0,
+                diastolic: parseInt(document.getElementById('pressure-diastolic').value) || 0,
+                pulse: parseInt(document.getElementById('pressure-pulse').value) || 0,
+                when: document.getElementById('pressure-when').value || 'general',
+                trainingId: document.getElementById('pressure-training-link').value || null,
+                notes: document.getElementById('pressure-notes').value || ''
+            };
+            
+            // Если есть связь с тренировкой, обновляем и тренировку
+            if (record.trainingId) {
+                const trainingIndex = records.findIndex(r => r.id == record.trainingId);
+                if (trainingIndex !== -1) {
+                    records[trainingIndex].pressureLinked = true;
+                    records[trainingIndex].pressureWhen = record.when;
+                }
+            }
+            
+            records.unshift(record);
+            localStorage.setItem('fitnessPressureRecords', JSON.stringify(records));
+            
+            alert('✅ Измерение давления сохранено!');
+            clearPressureForm();
+            showTab('history');
+        }
+        
+        function updateTrainingLinks() {
+            const select = document.getElementById('pressure-training-link');
+            const trainings = records.filter(r => r.type === 'training' && !r.pressureLinked);
+            
+            select.innerHTML = '<option value="">Выберите тренировку...</option>';
+            trainings.forEach(training => {
+                const option = document.createElement('option');
+                option.value = training.id;
+                const time = new Date(training.timestamp).toLocaleTimeString('ru-RU', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                option.textContent = `${time} - ${training.trainingType || 'Тренировка'}`;
+                select.appendChild(option);
+            });
+        }
+        
+        function clearPressureForm() {
+            document.getElementById('pressure-systolic').value = '';
+            document.getElementById('pressure-diastolic').value = '';
+            document.getElementById('pressure-pulse').value = '';
+            document.getElementById('pressure-when').value = 'general';
+            document.getElementById('pressure-training-link').value = '';
+            document.getElementById('pressure-notes').value = '';
+            document.getElementById('training-link-section').style.display = 'none';
+        }
+        
+        // ============ ИСТОРИЯ ============
+        function loadHistory(filter = 'all') {
+            const container = document.getElementById('history-records');
+            
+            let filteredRecords = records;
+            if (filter === 'training') {
+                filteredRecords = records.filter(r => r.type === 'training');
+            } else if (filter === 'pressure') {
+                filteredRecords = records.filter(r => r.type === 'pressure');
+            }
+            
+            if (filteredRecords.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">📭</div>
+                        <h3>Нет записей</h3>
+                        <p>Начните с вкладки "Быстрый старт"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            filteredRecords.forEach(record => {
+                html += renderRecord(record);
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function renderRecord(record) {
+            let typeBadge = '';
+            let content = '';
+            
+            if (record.type === 'training') {
+                typeBadge = `<span class="record-type type-training">🏋️ Тренировка</span>`;
+                
+                content = `
+                    <div class="record-content">
+                        <div><strong>Тип:</strong> ${record.trainingType || 'Не указан'}</div>
+                        ${record.duration ? `<div><strong>Длительность:</strong> ${record.duration} мин</div>` : ''}
+                        ${record.intensity ? `<div><strong>Интенсивность:</strong> ${record.intensity}</div>` : ''}
+                        ${record.feeling ? `<div><strong>Самочувствие:</strong> ${record.feeling}</div>` : ''}
+                        ${record.exercises ? `<div style="margin-top: 10px; white-space: pre-line;">${record.exercises}</div>` : ''}
+                        ${record.pressureLinked ? `<div style="margin-top: 10px; color: #764ba2; font-weight: 500;">📎 Связано с измерением давления (${record.pressureWhen})</div>` : ''}
+                    </div>
+                `;
+            } 
+            else if (record.type === 'pressure') {
+                typeBadge = `<span class="record-type type-pressure">❤️ Давление</span>`;
+                
+                const whenMap = {
+                    'general': 'Обычное измерение',
+                    'before-training': 'Перед тренировкой',
+                    'after-training': 'После тренировки',
+                    'morning': 'Утреннее',
+                    'evening': 'Вечернее',
+                    'night': 'Ночное',
+                    'symptoms': 'При симптомах'
+                };
+                
+                content = `
+                    <div class="record-content">
+                        <div><strong>Давление:</strong> ${record.systolic}/${record.diastolic}</div>
+                        <div><strong>Пульс:</strong> ${record.pulse} уд/мин</div>
+                        <div><strong>Когда:</strong> ${whenMap[record.when] || record.when}</div>
+                        ${record.notes ? `<div style="margin-top: 10px; white-space: pre-line;">${record.notes}</div>` : ''}
+                        ${record.trainingId ? `<div style="margin-top: 10px; color: #667eea;">📎 Привязано к тренировке</div>` : ''}
+                    </div>
+                `;
+            }
+            else if (record.type === 'combined') {
+                typeBadge = `<span class="record-type type-combined">🏋️❤️ Связка</span>`;
+                
+                const whenMap = {
+                    'before-training': 'Перед тренировкой',
+                    'after-training': 'После тренировки',
+                    'both': 'До и после'
+                };
+                
+                content = `
+                    <div class="record-content">
+                        <div><strong>Тренировка:</strong> ${record.training.type}</div>
+                        ${record.training.duration ? `<div><strong>Длительность:</strong> ${record.training.duration} мин</div>` : ''}
+                        <div><strong>Давление измерили:</strong> ${whenMap[record.training.when] || record.training.when}</div>
+                        <div><strong>Давление:</strong> ${record.pressure.systolic}/${record.pressure.diastolic}</div>
+                        <div><strong>Пульс:</strong> ${record.pressure.pulse} уд/мин</div>
+                        ${record.notes ? `<div style="margin-top: 10px; white-space: pre-line;">${record.notes}</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="record-card fade-in">
+                    <div class="record-header">
+                        <div class="record-date">${record.date}</div>
+                        ${typeBadge}
+                    </div>
+                    ${content}
+                    <div class="record-footer">
+                        <div></div>
+                        <div class="record-actions">
+                            <button class="action-btn" onclick="deleteRecord(${record.id})">🗑 Удалить</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function filterRecords(type) {
+            loadHistory(type);
+        }
+        
+        // ============ СТАТИСТИКА ============
+        function updateStats() {
+            const trainings = records.filter(r => r.type === 'training').length;
+            const pressure = records.filter(r => r.type === 'pressure').length;
+            const combined = records.filter(r => r.type === 'combined').length;
+            
+            document.getElementById('stat-total').textContent = records.length;
+            document.getElementById('stat-trainings').textContent = trainings;
+            document.getElementById('stat-pressure').textContent = pressure;
+            document.getElementById('stat-combined').textContent = combined;
+        }
+        
+        // ============ УТИЛИТЫ ============
+        function deleteRecord(id) {
+            if (confirm('Удалить эту запись?')) {
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem('fitnessPressureRecords', JSON.stringify(records));
+                loadHistory();
+                updateStats();
+            }
+        }
+        
+        function exportJSON() {
+            const dataStr = JSON.stringify(records, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `фитнес_давление_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+        
+        function exportCSV() {
+            let csv = 'Тип;Дата;Параметры\n';
+            
+            records.forEach(record => {
+                if (record.type === 'training') {
+                    csv += `Тренировка;${record.date};"Тип: ${record.trainingType}, Длительность: ${record.duration || ''} мин"\n`;
+                } else if (record.type === 'pressure') {
+                    csv += `Давление;${record.date};"${record.systolic}/${record.diastolic}, Пульс: ${record.pulse}"\n`;
+                } else if (record.type === 'combined') {
+                    csv += `Связка;${record.date};"Тренировка: ${record.training.type}, Давление: ${record.pressure.systolic}/${record.pressure.diastolic}"\n`;
+                }
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `фитнес_давление_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+        
+        function clearAllData() {
+            if (confirm('ВНИМАНИЕ! Удалить ВСЕ данные? Это действие нельзя отменить.')) {
+                records = [];
+                localStorage.removeItem('fitnessPressureRecords');
+                loadHistory();
+                updateStats();
+                alert('Все данные удалены');
+            }
+        }
+    </script>
+</body>
+</html>
