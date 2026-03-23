@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика тренировок</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+            position: relative;
+        }
+        h1 { font-size: 28px; margin-bottom: 10px; font-weight: 600; }
+        .subtitle { opacity: 0.9; font-size: 16px; }
+        
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .nav-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        /* Источники данных */
+        .data-sources {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .source-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+        .source-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .file-input {
+            margin-bottom: 15px;
+        }
+        .file-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+        }
+        .file-input input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        /* Статистика */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            border: 2px solid #667eea30;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .stat-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea30;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            color: #666;
+        }
+        .stat-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        /* Таблица */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .weight-min {
+            color: #28a745;
+            font-weight: 500;
+        }
+        .weight-max {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            gap: 8px;
+            background: #667eea;
+            color: white;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .info-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        /* Прогресс бар */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #667eea);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .data-sources {
+                grid-template-columns: 1fr;
+            }
+            .nav-buttons {
+                position: static;
+                margin-bottom: 20px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="nav-buttons">
+                <a href="diary_training.html" class="nav-btn">
+                    ← Дневник
+                </a>
+            </div>
+            <h1>📊 Статистика тренировок</h1>
+            <p class="subtitle">Анализ прогресса по упражнениям</p>
+        </header>
+        
+        <div class="content">
+            <!-- Выбор источника данных -->
+            <div class="data-sources">
+                <div class="source-card">
+                    <div class="source-title">
+                        <span>💾 Из браузера</span>
+                    </div>
+                    <p style="color: #666; margin-bottom: 20px;">Загрузить данные из localStorage (текущий браузер)</p>
+                    <button class="btn" onclick="loadFromBrowser()">
+                        📂 Загрузить из браузера
+                    </button>
+                </div>
+                
+                <div class="source-card">
+                    <div class="source-title">
+                        <span>📁 Загрузить файл</span>
+                    </div>
+                    <div class="file-input">
+                        <label>JSON файл с тренировками</label>
+                        <input type="file" id="jsonFile" accept=".json" onchange="loadFromFile(event)">
+                    </div>
+                    <p style="color: #999; font-size: 12px; margin-top: 10px;">Файл должен быть в формате JSON, экспортированный из дневника тренировок</p>
+                </div>
+            </div>
+            
+            <!-- Результаты статистики -->
+            <div id="statsResults" style="display: none;">
+                <!-- Общая статистика -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-title">Всего</div>
+                        <div class="stat-row">
+                            <span class="stat-label">Тренировок:</span>
+                            <span class="stat-value" id="stat-total">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Упражнений (уникальных):</span>
+                            <span class="stat-value" id="stat-unique">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Всего подходов:</span>
+                            <span class="stat-value" id="stat-sets">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">Рекорды</div>
+                        <div class="stat-row">
+                            <span class="stat-label">Макс. вес (любое упр.):</span>
+                            <span class="stat-value" id="stat-max-weight">0 кг</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Самое частое упражнение:</span>
+                            <span class="stat-value" id="stat-most-frequent">—</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Суммарный тоннаж:</span>
+                            <span class="stat-value" id="stat-total-weight">0 кг</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">Средние показатели</div>
+                        <div class="stat-row">
+                            <span class="stat-label">Подходов за тренировку:</span>
+                            <span class="stat-value" id="stat-avg-sets">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Упражнений за тренировку:</span>
+                            <span class="stat-value" id="stat-avg-exercises">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Ср. вес подхода:</span>
+                            <span class="stat-value" id="stat-avg-weight">0 кг</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Таблица прогресса -->
+                <div class="table-container">
+                    <h3 style="margin-bottom: 20px;">📋 Прогресс по упражнениям</h3>
+                    <table id="exercise-stats-table">
+                        <thead>
+                            <tr>
+                                <th>Упражнение</th>
+                                <th>Подходов</th>
+                                <th>Мин. вес (кг)</th>
+                                <th>Макс. вес (кг)</th>
+                                <th>Последний вес</th>
+                                <th>Прогресс</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exercise-stats-body">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 40px;">
+                                    Загрузите данные для просмотра статистики
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadFromBrowser() {
+            const records = JSON.parse(localStorage.getItem('trainingRecords') || '[]');
+            if (records.length === 0) {
+                alert('В браузере нет данных о тренировках');
+                return;
+            }
+            processData(records);
+        }
+        
+        function loadFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const records = JSON.parse(e.target.result);
+                    processData(records);
+                } catch (error) {
+                    alert('Ошибка при чтении файла. Убедитесь, что это правильный JSON файл.');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function processData(records) {
+            // Показываем результаты
+            document.getElementById('statsResults').style.display = 'block';
+            
+            // Общая статистика
+            const totalTrainings = records.length;
+            
+            let totalSets = 0;
+            let totalExercises = 0;
+            let totalWeight = 0;
+            let maxWeight = 0;
+            let exerciseCount = {};
+            let allWeights = [];
+            
+            records.forEach(record => {
+                if (record.exercises) {
+                    totalExercises += record.exercises.length;
+                    
+                    record.exercises.forEach(exercise => {
+                        // Считаем количество появлений упражнения
+                        exerciseCount[exercise.name] = (exerciseCount[exercise.name] || 0) + 1;
+                        
+                        if (exercise.sets) {
+                            totalSets += exercise.sets.length;
+                            
+                            exercise.sets.forEach(set => {
+                                const weight = set.weight || 0;
+                                allWeights.push(weight);
+                                totalWeight += weight * (set.reps || 0);
+                                if (weight > maxWeight) {
+                                    maxWeight = weight;
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // Уникальные упражнения
+            const uniqueExercises = Object.keys(exerciseCount).length;
+            
+            // Самое частое упражнение
+            let mostFrequent = '—';
+            let maxCount = 0;
+            for (let [name, count] of Object.entries(exerciseCount)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    mostFrequent = name;
+                }
+            }
+            
+            // Средние показатели
+            const avgSetsPerTraining = totalTrainings > 0 ? (totalSets / totalTrainings).toFixed(1) : 0;
+            const avgExercisesPerTraining = totalTrainings > 0 ? (totalExercises / totalTrainings).toFixed(1) : 0;
+            const avgWeight = allWeights.length > 0 ? (allWeights.reduce((a, b) => a + b, 0) / allWeights.length).toFixed(1) : 0;
+            
+            // Обновляем UI
+            document.getElementById('stat-total').textContent = totalTrainings;
+            document.getElementById('stat-unique').textContent = uniqueExercises;
+            document.getElementById('stat-sets').textContent = totalSets;
+            document.getElementById('stat-max-weight').textContent = maxWeight + ' кг';
+            document.getElementById('stat-most-frequent').textContent = mostFrequent.length > 25 ? mostFrequent.substring(0, 25) + '…' : mostFrequent;
+            document.getElementById('stat-total-weight').textContent = totalWeight.toFixed(0) + ' кг';
+            document.getElementById('stat-avg-sets').textContent = avgSetsPerTraining;
+            document.getElementById('stat-avg-exercises').textContent = avgExercisesPerTraining;
+            document.getElementById('stat-avg-weight').textContent = avgWeight + ' кг';
+            
+            // Таблица прогресса по упражнениям
+            updateExerciseStatsTable(records);
+        }
+        
+        function updateExerciseStatsTable(records) {
+            const stats = {};
+            
+            // Собираем статистику по каждому упражнению
+            records.forEach(record => {
+                if (!record.exercises) return;
+                
+                record.exercises.forEach(exercise => {
+                    if (!stats[exercise.name]) {
+                        stats[exercise.name] = {
+                            name: exercise.name,
+                            weights: [],
+                            lastWeight: 0,
+                            totalSets: 0,
+                            lastDate: record.timestamp
+                        };
+                    }
+                    
+                    if (exercise.sets) {
+                        exercise.sets.forEach(set => {
+                            stats[exercise.name].weights.push(set.weight || 0);
+                            stats[exercise.name].totalSets++;
+                            stats[exercise.name].lastWeight = set.weight || 0;
+                        });
+                    }
+                    
+                    // Обновляем дату, если тренировка более поздняя
+                    if (record.timestamp > stats[exercise.name].lastDate) {
+                        stats[exercise.name].lastDate = record.timestamp;
+                    }
+                });
+            });
+            
+            // Формируем таблицу
+            const tbody = document.getElementById('exercise-stats-body');
+            
+            if (Object.keys(stats).length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            Нет данных для отображения
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            // Сортируем упражнения по алфавиту
+            const sortedExercises = Object.values(stats).sort((a, b) => a.name.localeCompare(b.name));
+            
+            sortedExercises.forEach(stat => {
+                const weights = stat.weights.filter(w => w > 0);
+                if (weights.length === 0) return;
+                
+                const minWeight = Math.min(...weights);
+                const maxWeight = Math.max(...weights);
+                const lastWeight = stat.lastWeight;
+                const progress = minWeight > 0 ? ((lastWeight - minWeight) / minWeight * 100).toFixed(1) : 0;
+                
+                html += `
+                    <tr>
+                        <td><strong>${stat.name}</strong></td>
+                        <td>${stat.totalSets}</td>
+                        <td class="weight-min">${minWeight} кг</td>
+                        <td class="weight-max">${maxWeight} кг</td>
+                        <td>${lastWeight} кг</td>
+                        <td style="color: ${progress >= 0 ? '#28a745' : '#dc3545'};">
+                            ${progress > 0 ? '+' : ''}${progress}%
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${Math.min(Math.abs(progress), 100)}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            if (html === '') {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            Нет данных с корректными весами
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = html;
+            }
+        }
+    </script>
+</body>
+</html>

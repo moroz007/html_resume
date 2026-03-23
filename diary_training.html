@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дневник тренировок</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+            position: relative;
+        }
+        h1 { font-size: 28px; margin-bottom: 10px; font-weight: 600; }
+        .subtitle { opacity: 0.9; font-size: 16px; }
+        
+        /* Ссылка на статистику */
+        .stats-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .stats-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        
+        /* Навигация */
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .nav-tab {
+            flex: 1;
+            text-align: center;
+            padding: 18px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 500;
+            color: #6c757d;
+        }
+        .nav-tab:hover { background: #e9ecef; }
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+        .tab-content { display: none; padding: 25px; }
+        .tab-content.active { display: block; }
+        
+        /* Формы */
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px dashed #dee2e6;
+        }
+        .form-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: white;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Кнопки */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-full { width: 100%; }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        /* Карточки упражнений */
+        .exercise-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+            position: relative;
+        }
+        .exercise-header {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .remove-exercise {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .remove-exercise:hover {
+            background: #cc0000;
+        }
+        .set-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            align-items: center;
+        }
+        .set-number {
+            font-weight: bold;
+            color: #666;
+            min-width: 70px;
+        }
+        .remove-set {
+            background: #ff4444;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Карточки записей */
+        .records-list {
+            margin-top: 20px;
+        }
+        .record-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        .record-card:hover {
+            border-color: #667eea;
+        }
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .record-date {
+            font-weight: 600;
+            font-size: 14px;
+            color: #666;
+        }
+        .record-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .record-footer {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            margin-top: 15px;
+        }
+        .action-btn {
+            padding: 5px 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        /* Сетка упражнений */
+        .exercise-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .set-badge {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        .set-weight {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .nav-tabs { flex-direction: column; }
+            .btn-group { flex-direction: column; }
+            .exercise-header { flex-direction: column; }
+            .set-row { flex-direction: column; }
+            .stats-link {
+                position: static;
+                margin-top: 20px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container fade-in">
+        <header>
+            <h1>🏋️ Дневник тренировок</h1>
+            <p class="subtitle">Учёт упражнений и подходов</p>
+            <a href="statistics_training.html" class="stats-link" target="_blank">
+                📊 Статистика
+                <span style="font-size: 14px;">↗</span>
+            </a>
+        </header>
+        
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('trainings')" data-tab="trainings">
+                ➕ Новая тренировка
+            </div>
+            <div class="nav-tab" onclick="showTab('history')" data-tab="history">
+                📜 История
+            </div>
+        </div>
+        
+        <!-- Вкладка тренировок -->
+        <div id="tab-trainings" class="tab-content active">
+            <div class="form-section">
+                <div class="form-title">🏋️ Упражнения</div>
+                
+                <!-- Контейнер для упражнений -->
+                <div id="exercises-container"></div>
+                
+                <!-- Кнопка добавления упражнения -->
+                <button class="btn btn-secondary" onclick="addExercise()" style="margin-bottom: 20px; width: 100%;">
+                    ➕ Добавить упражнение
+                </button>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-full" onclick="saveTraining()">
+                        💾 Сохранить тренировку
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Вкладка истории -->
+        <div id="tab-history" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>📜 История тренировок</h3>
+                <button class="btn btn-secondary" onclick="exportJSON()" style="padding: 8px 15px;">
+                    💾 Экспорт JSON
+                </button>
+            </div>
+            <div id="history-records" class="records-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let records = JSON.parse(localStorage.getItem('trainingRecords') || '[]');
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            addExercise();
+            loadHistory();
+        });
+        
+        // ============ УПРАЖНЕНИЯ И ПОДХОДЫ ============
+        
+        function addExercise() {
+            const container = document.getElementById('exercises-container');
+            const exerciseIndex = container.children.length;
+            
+            const exerciseHTML = `
+                <div class="exercise-card" data-index="${exerciseIndex}">
+                    <button class="remove-exercise" onclick="removeExercise(${exerciseIndex})">×</button>
+                    
+                    <div class="exercise-header">
+                        <div style="flex: 2;">
+                            <label>Упражнение</label>
+                            <select class="exercise-type" onchange="updateExerciseName(this, ${exerciseIndex})">
+                                <option value="">Выберите упражнение</option>
+                                <option value="Жим штанги лёжа">Жим штанги лёжа</option>
+                                <option value="Приседания со штангой">Приседания со штангой</option>
+                                <option value="Становая тяга">Становая тяга</option>
+                                <option value="Жим гантелей сидя">Жим гантелей сидя</option>
+                                <option value="Тяга штанги в наклоне">Тяга штанги в наклоне</option>
+                                <option value="Подтягивания">Подтягивания</option>
+                                <option value="Отжимания на брусьях">Отжимания на брусьях</option>
+                                <option value="Жим ногами">Жим ногами</option>
+                                <option value="Сгибание рук со штангой">Сгибание рук со штангой</option>
+                                <option value="Французский жим">Французский жим</option>
+                                <option value="custom">Своё упражнение...</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Своё название</label>
+                            <input type="text" class="exercise-custom-name" 
+                                   placeholder="Введите название" 
+                                   style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="sets-container" id="sets-${exerciseIndex}"></div>
+                    
+                    <button type="button" class="btn btn-secondary" 
+                            onclick="addSet(${exerciseIndex})"
+                            style="margin-top: 10px; width: 100%;">
+                        ➕ Добавить подход
+                    </button>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', exerciseHTML);
+            addSet(exerciseIndex);
+        }
+        
+        function addSet(exerciseIndex) {
+            const setsContainer = document.getElementById(`sets-${exerciseIndex}`);
+            const setIndex = setsContainer.children.length;
+            
+            const setHTML = `
+                <div class="set-row" data-set="${setIndex}">
+                    <div class="set-number">Подход ${setIndex + 1}</div>
+                    <div style="flex: 1;">
+                        <input type="number" class="set-weight" 
+                               placeholder="Вес (кг)" min="0" step="0.5"
+                               style="width: 100%; padding: 8px;">
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="number" class="set-reps" 
+                               placeholder="Повторения" min="1"
+                               style="width: 100%; padding: 8px;">
+                    </div>
+                    <button class="remove-set" onclick="removeSet(${exerciseIndex}, ${setIndex})">×</button>
+                </div>
+            `;
+            
+            setsContainer.insertAdjacentHTML('beforeend', setHTML);
+        }
+        
+        function removeExercise(exerciseIndex) {
+            if (confirm('Удалить это упражнение?')) {
+                const exerciseCard = document.querySelector(`.exercise-card[data-index="${exerciseIndex}"]`);
+                if (exerciseCard) {
+                    exerciseCard.remove();
+                    updateExerciseNumbers();
+                }
+            }
+        }
+        
+        function removeSet(exerciseIndex, setIndex) {
+            if (confirm('Удалить этот подход?')) {
+                const setsContainer = document.getElementById(`sets-${exerciseIndex}`);
+                const setRow = setsContainer.querySelector(`.set-row[data-set="${setIndex}"]`);
+                if (setRow) {
+                    setRow.remove();
+                    updateSetNumbers(exerciseIndex);
+                }
+            }
+        }
+        
+        function updateExerciseNumbers() {
+            const exercises = document.querySelectorAll('.exercise-card');
+            exercises.forEach((exercise, index) => {
+                exercise.setAttribute('data-index', index);
+                
+                const addSetBtn = exercise.querySelector('button[onclick^="addSet"]');
+                if (addSetBtn) {
+                    addSetBtn.setAttribute('onclick', `addSet(${index})`);
+                }
+                
+                const setsContainer = exercise.querySelector('.sets-container');
+                if (setsContainer) {
+                    setsContainer.id = `sets-${index}`;
+                }
+                
+                const removeBtn = exercise.querySelector('.remove-exercise');
+                if (removeBtn) {
+                    removeBtn.setAttribute('onclick', `removeExercise(${index})`);
+                }
+            });
+        }
+        
+        function updateSetNumbers(exerciseIndex) {
+            const setsContainer = document.getElementById(`sets-${exerciseIndex}`);
+            if (!setsContainer) return;
+            
+            const setRows = setsContainer.querySelectorAll('.set-row');
+            setRows.forEach((setRow, index) => {
+                setRow.setAttribute('data-set', index);
+                setRow.querySelector('.set-number').textContent = `Подход ${index + 1}`;
+                
+                const removeBtn = setRow.querySelector('.remove-set');
+                if (removeBtn) {
+                    removeBtn.setAttribute('onclick', `removeSet(${exerciseIndex}, ${index})`);
+                }
+            });
+        }
+        
+        function updateExerciseName(select, exerciseIndex) {
+            const exerciseCard = document.querySelector(`.exercise-card[data-index="${exerciseIndex}"]`);
+            const customNameInput = exerciseCard.querySelector('.exercise-custom-name');
+            
+            if (select.value === 'custom') {
+                customNameInput.style.display = 'block';
+            } else {
+                customNameInput.style.display = 'none';
+                customNameInput.value = '';
+            }
+        }
+        
+        // ============ СОХРАНЕНИЕ ТРЕНИРОВКИ ============
+        
+        function saveTraining() {
+            const exercises = [];
+            const exerciseCards = document.querySelectorAll('.exercise-card');
+            
+            if (exerciseCards.length === 0) {
+                alert('Добавьте хотя бы одно упражнение!');
+                return;
+            }
+            
+            let hasError = false;
+            
+            exerciseCards.forEach((card, exerciseIndex) => {
+                const typeSelect = card.querySelector('.exercise-type');
+                let exerciseType = typeSelect.value;
+                
+                if (exerciseType === 'custom') {
+                    const customName = card.querySelector('.exercise-custom-name').value;
+                    if (!customName.trim()) {
+                        alert(`Введите название для упражнения ${exerciseIndex + 1}`);
+                        hasError = true;
+                        return;
+                    }
+                    exerciseType = customName;
+                } else if (!exerciseType) {
+                    alert(`Выберите упражнение ${exerciseIndex + 1}`);
+                    hasError = true;
+                    return;
+                }
+                
+                const sets = [];
+                const setRows = card.querySelectorAll('.set-row');
+                
+                if (setRows.length === 0) {
+                    alert(`Добавьте хотя бы один подход для упражнения ${exerciseIndex + 1}`);
+                    hasError = true;
+                    return;
+                }
+                
+                setRows.forEach((setRow, setIndex) => {
+                    const weight = parseFloat(setRow.querySelector('.set-weight').value) || 0;
+                    const reps = parseInt(setRow.querySelector('.set-reps').value) || 0;
+                    
+                    if (weight > 0 && reps > 0) {
+                        sets.push({
+                            set: setIndex + 1,
+                            weight: weight,
+                            reps: reps
+                        });
+                    } else {
+                        alert(`Заполните вес и повторения для подхода ${setIndex + 1} в упражнении ${exerciseIndex + 1}`);
+                        hasError = true;
+                        return;
+                    }
+                });
+                
+                if (hasError) return;
+                
+                exercises.push({
+                    name: exerciseType,
+                    sets: sets
+                });
+            });
+            
+            if (hasError) return;
+            
+            const record = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleString('ru-RU'),
+                exercises: exercises
+            };
+            
+            records.unshift(record);
+            localStorage.setItem('trainingRecords', JSON.stringify(records));
+            
+            alert('✅ Тренировка сохранена!');
+            clearTrainingForm();
+            showTab('history');
+            loadHistory();
+        }
+        
+        function clearTrainingForm() {
+            const container = document.getElementById('exercises-container');
+            container.innerHTML = '';
+            addExercise();
+        }
+        
+        // ============ ИСТОРИЯ ============
+        
+        function loadHistory() {
+            const container = document.getElementById('history-records');
+            
+            if (records.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: #6c757d;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">📭</div>
+                        <h3>Нет записей</h3>
+                        <p>Добавьте первую тренировку</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            records.forEach(record => {
+                html += renderRecord(record);
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function renderRecord(record) {
+            let exercisesHTML = '';
+            
+            record.exercises.forEach((exercise, idx) => {
+                exercisesHTML += `
+                    <div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                        <div style="font-weight: bold; margin-bottom: 10px; color: #333;">
+                            ${idx + 1}. ${exercise.name}
+                        </div>
+                        <div class="exercise-grid">
+                            ${exercise.sets.map(set => `
+                                <div class="set-badge">
+                                    <div class="set-weight">${set.weight} кг</div>
+                                    <div style="font-size: 12px; color: #666;">× ${set.reps}</div>
+                                    <div style="font-size: 11px; color: #999;">Подход ${set.set}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return `
+                <div class="record-card fade-in">
+                    <div class="record-header">
+                        <div class="record-date">${record.date}</div>
+                        <span class="record-type">🏋️ Тренировка</span>
+                    </div>
+                    ${exercisesHTML}
+                    <div class="record-footer">
+                        <button class="action-btn" onclick="deleteRecord(${record.id})">🗑 Удалить</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function deleteRecord(id) {
+            if (confirm('Удалить эту запись?')) {
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem('trainingRecords', JSON.stringify(records));
+                loadHistory();
+            }
+        }
+        
+        // ============ ЭКСПОРТ ============
+        
+        function exportJSON() {
+            const dataStr = JSON.stringify(records, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `тренировки_${getCurrentDate()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function getCurrentDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+        
+        // ============ НАВИГАЦИЯ ============
+        
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelector(`.nav-tab[data-tab="${tabName}"]`).classList.add('active');
+            
+            if (tabName === 'history') loadHistory();
+        }
+    </script>
+</body>
+</html>
