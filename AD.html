@@ -9,15 +9,17 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 Дневник давления</h1>
-        
-        <div class="date-display" id="currentDate"></div>
-        
-        <div class="tabs">
-            <div class="tab active" onclick="showTab('input')">Ввод</div>
-            <div class="tab" onclick="showTab('history')">История</div>
-            <div class="tab" onclick="showTab('export')">Экспорт</div>
-        </div>
+        <header>
+            <h1>📊 Дневник давления</h1>
+
+            <div class="date-display" id="currentDate"></div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('input')">Ввод</div>
+                <div class="tab" onclick="showTab('history')">История</div>
+                <div class="tab" onclick="showTab('export')">Экспорт</div>
+            </div>
+        </header>
         
         <!-- Вкладка ввода -->
         <div id="tab-input" class="tab-content active">
